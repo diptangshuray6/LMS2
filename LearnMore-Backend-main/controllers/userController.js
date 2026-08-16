@@ -39,9 +39,12 @@ export const getUserData = async (req, res) => {
     }
 };
 
+
 // Users Enrolled Courses With lecture Links
 export const userEnrolledCourses = async (req, res) => {
     try {
+
+        // Get currently authenticated Clerk user
         const { userId } = getAuth(req);
 
         if (!userId) {
@@ -51,8 +54,19 @@ export const userEnrolledCourses = async (req, res) => {
             });
         }
 
+        // Find the current user and populate ALL enrolled courses
         const userData = await User.findById(userId)
             .populate("enrolledCourses");
+
+        if (!userData) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        console.log("USER ID:", userId);
+        console.log("ENROLLED COURSES:", userData.enrolledCourses);
 
         res.json({
             success: true,
@@ -60,12 +74,39 @@ export const userEnrolledCourses = async (req, res) => {
         });
 
     } catch (error) {
-        res.json({
+        res.status(500).json({
             success: false,
             message: error.message
         });
     }
 };
+
+// export const userEnrolledCourses = async (req, res) => {
+//     try {
+//         const { userId } = getAuth(req);
+
+//         if (!userId) {
+//             return res.status(401).json({
+//                 success: false,
+//                 message: "User is not authenticated"
+//             });
+//         }
+
+//         const userData = await User.findById(userId)
+//             .populate("enrolledCourses");
+
+//         res.json({
+//             success: true,
+//             enrolledCourses: userData.enrolledCourses
+//         });
+
+//     } catch (error) {
+//         res.json({
+//             success: false,
+//             message: error.message
+//         });
+//     }
+// };
 
 // purchase course
 export const purchaseCourse = async (req, res) => {
