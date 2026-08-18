@@ -1,6 +1,8 @@
 import { clerkClient, getAuth } from "@clerk/express";
 import { v2 as cloudinary } from "cloudinary";
 import Course from "../models/Course.js";
+import Purchase from "../models/Purchase.js";
+import User from "../models/User.js"
 // // Update role to educator
 // export const updateRoleToEducator = async (req, res) => {
 //   try {
@@ -169,13 +171,54 @@ export const educatorDashboardData = async (req, res) => {
 };
 
 // Get Enrolled Students Data
+// export const getEnrolledStudentsData = async (req, res) => {
+//     try {
+//         const { userId } = getAuth(req);
+//         const educator = userId;
+//         const courses = await Course.find({ educator });
+
+//         const courseIds = courses.map(course => course._id);
+
+//         const purchases = await Purchase.find({
+//             courseId: { $in: courseIds },
+//             status: "completed"
+//         })
+//         .populate("userId", "name imageUrl")
+//         .populate("courseId", "courseTitle");
+
+//         const enrolledStudents = purchases.map(purchase => ({
+//             student: purchase.userId,
+//             courseTitle: purchase.courseId.courseTitle,
+//             purchaseDate: purchase.createdAt
+//         }));
+
+//         res.json({
+//             success: true,
+//             enrolledStudents
+//         });
+
+//     } catch (error) {
+//         res.status(500).json({
+//             success: false,
+//             message: error.message
+//         });
+//     }
+// };
 export const getEnrolledStudentsData = async (req, res) => {
     try {
         const { userId } = getAuth(req);
-        const educator = userId;
-        const courses = await Course.find({ educator });
+
+        console.log("Educator Clerk ID:", userId);
+
+        const courses = await Course.find({
+            educator: userId
+        });
+
+        console.log("Educator courses:", courses);
 
         const courseIds = courses.map(course => course._id);
+
+        console.log("Course IDs:", courseIds);
 
         const purchases = await Purchase.find({
             courseId: { $in: courseIds },
@@ -184,11 +227,15 @@ export const getEnrolledStudentsData = async (req, res) => {
         .populate("userId", "name imageUrl")
         .populate("courseId", "courseTitle");
 
+        console.log("Purchases:", purchases);
+
         const enrolledStudents = purchases.map(purchase => ({
             student: purchase.userId,
-            courseTitle: purchase.courseId.courseTitle,
+            courseTitle: purchase.courseId?.courseTitle,
             purchaseDate: purchase.createdAt
         }));
+
+        console.log("Enrolled students:", enrolledStudents);
 
         res.json({
             success: true,
@@ -196,6 +243,8 @@ export const getEnrolledStudentsData = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("GET ENROLLED STUDENTS ERROR:", error);
+
         res.status(500).json({
             success: false,
             message: error.message
