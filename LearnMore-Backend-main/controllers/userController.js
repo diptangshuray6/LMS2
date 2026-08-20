@@ -198,10 +198,19 @@ export const updateUserCourseProgress = async (req, res) => {
             });
         }
 
+        if (!user.enrolledCourses.includes(courseId)) {
+                return res.status(403).json({
+                    success: false,
+                    message: "You are not enrolled in this course"
+            });
+        }
+
         const progressData = await CourseProgress.findOne({
             userId,
             courseId
         });
+
+        
 
         if (progressData) {
 
